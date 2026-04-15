@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Tizzy - Agendamento</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 3em;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #ccc;
+            font-size: 1.2em;
+        }
+
+        .booking-container {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #555;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #666;
+            background: rgba(255,255,255,0.2);
+        }
+
+        input::placeholder {
+            color: #aaa;
+        }
+
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .service-item {
+            padding: 20px;
+            border: 2px solid #555;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .service-item:hover {
+            border-color: #777;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .service-item.selected {
+            border-color: #fff;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin: 25px 0;
+        }
+
+        .calendar-header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .calendar-day {
+            padding: 15px;
+            text-align: center;
+            border: 2px solid #555;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.05);
+            font-weight: bold;
+        }
+
+        .calendar-day:hover:not(.disabled):not(.booked) {
+            border-color: #777;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .calendar-day.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.booked {
+            background: #444;
+            border-color: #666;
+            cursor: not-allowed;
+            color: #999;
+        }
+
+        .calendar-day.selected {
+            border-color: #fff;
+            background: rgba(255,255,255,0.4);
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .time-slot {
+            padding: 15px;
+            text-align: center;
+            border: 2px solid #555;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.05);
+            font-weight: bold;
+        }
+
+        .time-slot:hover:not(.disabled):not(.booked) {
+            border-color: #777;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .time-slot.booked {
+            background: #444;
+            border-color: #666;
+            cursor: not-allowed;
+            color: #999;
+        }
+
+        .time-slot.selected {
+            border-color: #fff;
+            background: rgba(255,255,255,0.4);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(45deg, #333, #555);
+            color: #fff;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #555, #777);
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .contact-info {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .phone {
+            font-size: 1.5em;
+            color: #fff;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2em;
+            }
+            
+            .booking-container {
+                padding: 20px;
+            }
+            
+            .services {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">Studio Tizzy</h1>
+            <p class="subtitle">Cílios • Manicure • Sobrancelha</p>
+        </header>
+
+        <div class="booking-container">
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label>Nome Completo *</label>
+                    <input type="text" id="name" placeholder="Digite seu nome completo" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Telefone/WhatsApp *</label>
+                    <input type="tel" id="phone" placeholder="(99) 99999-9999" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Serviço *</label>
+                    <div class="services">
+                        <div class="service-item" data-service="Cílios">Cílios</div>
+                        <div class="service-item" data-service="Manicure">Manicure</div>
+                        <div class="service-item" data-service="Sobrancelha">Sobrancelha</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Data *</label>
+                    <div class="calendar-header">
+                        <button type="button" id="prevMonth">‹</button>
+                        <span id="monthYear"></span>
+                        <button type="button" id="nextMonth">›</button>
+                    </div>
+                    <div class="calendar" id="calendar"></div>
+                </div>
+
+                <div class="form-group" id="timeContainer" style="display: none;">
+                    <label>Horário *</label>
+                    <div class="time-slots" id="timeSlots"></div>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn" disabled>Agendar Horário</button>
+            </form>
+
+            <div class="contact-info">
+                <p><strong>Em caso de dúvidas:</strong></p>
+                <div class="phone">+55 99 8534-6877</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class BookingSystem {
+            constructor() {
+                this.currentDate = new Date();
+                this.currentDate.setDate(1);
+                this.selectedDate = null;
+                this.selectedTime = null;
+                this.selectedService = null;
+                this.bookings = JSON.parse(localStorage.getItem('studioTizzyBookings')) || {};
+                this.init();
+            }
+
+            init() {
+                this.renderCalendar();
+                this.attachEvents();
+            }
+
+            attachEvents() {
+                // Serviços
+                document.querySelectorAll('.service-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        document.querySelectorAll('.service-item').forEach(i => i.classList.remove('selected'));
+                        e.currentTarget.classList.add('selected');
+                        this.selectedService = e.currentTarget.dataset.service;
+                        this.checkFormComplete();
+                    });
+                });
+
+                // Navegação do calendário
+                document.getElementById('prevMonth').addEventListener('click', () => this.prevMonth());
+                document.getElementById('nextMonth').addEventListener('click', () => this.nextMonth());
+
+                // Calendário
+                document.getElementById('calendar').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('calendar-day') && !e.target.classList.contains('disabled')) {
+                        document.querySelectorAll('.calendar-day').forEach(day => day.classList.remove('selected'));
+                        e.target.classList.add('selected');
+                        this.selectedDate = e.target.dataset.date;
+                        this.renderTimeSlots();
+                    }
+                });
+
+                // Formulário
+                document.getElementById('bookingForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.confirmBooking();
+                });
+
+                // Verificar se formulário está completo
+                ['name', 'phone'].forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => this.checkFormComplete());
+                });
+            }
+
+            renderCalendar() {
+                const calendar = document.getElementById('calendar');
+                const monthYear = document.getElementById('monthYear');
+                
+                const year = this.currentDate.getFullYear();
+                const month = this.currentDate.getMonth();
+                
+                monthYear.textContent = this.currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                calendar.innerHTML = '';
+
+                // Dias da semana
+                ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'].forEach(day => {
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'calendar-day';
+                    dayEl.textContent = day;
+                    dayEl.style.fontWeight = 'bold';
+                    dayEl.style.background = 'rgba(255,255,255,0.15)';
+                    calendar.appendChild(dayEl);
+                });
+
+                // Dias em branco
+                for (let i = 0; i < firstDay; i++) {
+                    const empty = document.createElement('div');
+                    calendar.appendChild(empty);
+                }
+
+                // Dias do mês
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    const dateKey = date.toISOString().split('T')[0];
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'calendar-day';
+                    dayEl.textContent = day;
+                    dayEl.dataset.date = dateKey;
+
+                    // Funciona só sábados e domingos
+                    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                    if (!isWeekend || date < new Date()) {
+                        dayEl.classList.add('disabled');
+                    } else {
+                        // Verificar se já está reservado
+                        if (this.bookings[dateKey] && this.bookings[dateKey].length === 4) {
+                            dayEl.classList.add('booked');
+                        }
+                    }
+
+                    if (this.selectedDate === dateKey) {
+                        dayEl.classList.add('selected');
+                    }
+
+                    calendar.appendChild(dayEl);
+                }
+            }
+
+            prevMonth() {
+                this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+                this.renderCalendar();
+            }
+
+            nextMonth() {
+                this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+                this.renderCalendar();
+            }
+
+            renderTimeSlots() {
+                const container = document.getElementById('timeContainer');
+                const timeSlots = document.getElementById('timeSlots');
+                
+                if (!this.selectedDate) {
+                    container.style.display = 'none';
+                    return;
+                }
+
+                container.style.display = 'block';
+                timeSlots.innerHTML = '';
+
+                const times = ['09:00', '11:00', '14:00', '16:00'];
+                const dateKey = this.selectedDate;
+
+                times.forEach(time => {
+                    const timeKey = `${dateKey}-${time}`;
+                    const slotEl = document.createElement('div');
+                    slotEl.className = 'time-slot';
+                    slotEl.textContent = time;
+                    slotEl.dataset.time = time;
+
+                    if (this.bookings[dateKey] && this.bookings[dateKey].includes(time)) {
+                        slotEl.classList.add('booked');
+                    } else {
+                        slotEl.addEventListener('click', (e) => {
+                            document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
+                            e.currentTarget.classList.add('selected');
+                            this.selectedTime = time;
+                            this.checkFormComplete();
+                        });
+                    }
+
+                    if (this.selectedTime === time) {
+                        slotEl.classList.add('selected');
+                    }
+
+                    timeSlots.appendChild(slotEl);
+                });
+            }
+
+            checkFormComplete() {
+                const name = document.getElementById('name').value;
+                const phone = document.getElementById('phone').value;
+                const service = this.selectedService;
+                const date = this.selectedDate;
+                const time = this.selectedTime;
+
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = !(name && phone && service && date && time);
+            }
+
+            confirmBooking() {
+                const name = document.getElementById('name').value;
+                const phone = document.getElementById('phone').value;
+                const service = this.selectedService;
+                const date = new Date(this.selectedDate).toLocaleDateString('pt-BR');
+                const time = this.selectedTime;
+
+                const message = `🅽🅾🆅🅾 𝗔𝗚𝗘𝗗𝗔𝗠𝗘𝗡𝗧𝗢 - 𝗦𝗧𝗨𝗗𝗜𝗢 𝗧𝗜𝗭𝗭𝗬
+
+👤 *Nome:* ${name}
+📱 *Telefone:* ${phone}
+💅 *Serviço:* ${service}
+📅 *Data:* ${date}
+🕒 *Horário:* ${time}
+
+✅ Agendamento confirmado! Entraremos em contato para confirmar.`;
+
+                const whatsappUrl = `https://wa.me/559985346877?text=${encodeURIComponent(message)}`;
+                
+                // Salvar no localStorage
+                if (!this.bookings[this.selectedDate]) {
+                    this.bookings[this.selectedDate] = [];
+                }
+                this.bookings[this.selectedDate].push(time);
+                localStorage.setItem('studioTizzyBookings', JSON.stringify(this.bookings));
+
+                // Re-renderizar para atualizar visual
+                this.renderCalendar();
+                this.renderTimeSlots();
+
+                // Abrir WhatsApp
+                window.open(whatsappUrl, '_blank');
+
+                // Reset form
+                this.resetForm();
+                
+                alert('Horário agendado com sucesso! WhatsApp será aberto para confirmação.');
+            }
+
+            resetForm() {
+                document.getElementById('bookingForm').reset();
+                document.querySelectorAll('.service-item, .calendar-day, .time-slot').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                this.selectedDate = null;
+                this.selectedTime = null;
+                this.selectedService = null;
+                document.getElementById('timeContainer').style.display = 'none';
+                document.getElementById('submitBtn').disabled = true;
+            }
+        }
+
+        // Inicializar sistema
+        new BookingSystem();
+    </script>
+</body>
+</html>
